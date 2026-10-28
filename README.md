@@ -109,6 +109,7 @@ responses are never logged.
 ## Development
 
 ```sh
+uv run pre-commit install   # once: ruff check + format on every commit
 uv run pytest
 uv run ruff check . && uv run ruff format --check .
 ```
