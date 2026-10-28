@@ -1,0 +1,27 @@
+# Committed defaults. Put personal overrides in
+# config.local.toml, which is gitignored and merged on top of this file.
+
+[area]
+place = "Oslo, Norway"
+crs = "EPSG:25832"
+district_admin_level = 9
+
+[sync]
+activity_types = ["running", "trail_running"]
+request_delay_s = 1.0
+
+[matching]
+method = "buffer"        # or "valhalla"
+buffer_m = 20
+edge_threshold = 0.9     # fraction of edge length to count as covered
+street_threshold = 0.9   # fraction of street length to count as completed
+
+[tracks]
+max_speed_mps = 10.0     # drop points implying faster movement than this
+max_gap_s = 60           # split track on time gaps longer than this
+max_gap_m = 200          # split track on distance jumps longer than this
+
+[streets]
+include_highway = ["residential", "living_street", "unclassified", "tertiary", "secondary", "primary", "pedestrian"]
+exclude_access = ["private"]
+include_footways = false

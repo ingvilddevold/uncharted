@@ -1,0 +1,30 @@
+# Secrets and personal data — never commit
+.env
+config.local.toml
+data/
+*.fit
+*.zip
+*.html
+*.parquet
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# osmnx default cache dir (we redirect it to data/, this is a safety net)
+cache/
+
+# Internal planning notes
+plan.md
