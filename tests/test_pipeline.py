@@ -1,7 +1,7 @@
 """End-to-end match → stats → render on the synthetic grid, without network or FIT files."""
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import geopandas as gpd
@@ -39,7 +39,12 @@ def test_match_stats_render(tmp_path: Path, monkeypatch, grid_edges, grid_distri
         for i in runs:
             store.mark_downloaded(
                 ActivitySummary.model_validate(
-                    {"activityId": i, "activityType": {"typeKey": "running"}, "distance": 1000}
+                    {
+                        "activityId": i,
+                        "activityType": {"typeKey": "running"},
+                        "distance": 1000,
+                        "startTimeGMT": f"2026-01-0{i} 00:00:00",
+                    }
                 )
             )
 
@@ -68,6 +73,13 @@ def test_match_stats_render(tmp_path: Path, monkeypatch, grid_edges, grid_distri
     assert "Street coverage" in html
     assert "Alfa gate" in html
     assert pipeline.total_km_run(cfg) == 2.0
+
+    # Report for the second day only: run 2 completes "Beta vei" (B + C).
+    start = datetime(2026, 1, 2, tzinfo=UTC)
+    out, text = pipeline.run_report(cfg, start, start + timedelta(days=1))
+    assert out.exists()
+    assert "1 runs, 1.0 km" in text
+    assert "Completed: Beta vei" in text
 
 
 def test_cached_footways_dropped_when_turned_off(grid_edges) -> None:

@@ -5,7 +5,8 @@ from __future__ import annotations
 import json
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
+from pathlib import Path
 
 import geopandas as gpd
 import httpx
@@ -17,6 +18,7 @@ from uncharted.garmin.auth import Authenticator, Token
 from uncharted.garmin.client import GarminClient
 from uncharted.matching import apply_tracks, empty_coverage
 from uncharted.render import render_map
+from uncharted.report import PeriodRuns, render_report, summary_text, tracks_in_period
 from uncharted.storage import Store
 from uncharted.streets import (
     assign_districts,
@@ -163,6 +165,30 @@ def run_stats(cfg: Config) -> dict:
 def total_km_run(cfg: Config) -> float:
     with Store(cfg.db_path) as store:
         return sum((r["distance_m"] or 0) for r in store.all_activities()) / 1000
+
+
+def run_report(cfg: Config, start: datetime, end: datetime) -> tuple[Path, str]:
+    """Write the period report; returns its path and a plain-text summary."""
+    joined = load_joined(cfg)
+    s = cov_mod.period_summary(joined, start, end, cfg.matching.street_threshold)
+    with Store(cfg.db_path) as store:
+        acts = [
+            r
+            for r in store.all_activities()
+            if r["start_time"] and start <= datetime.fromisoformat(r["start_time"]) < end
+        ]
+    runs = PeriodRuns(len(acts), sum(r["distance_m"] or 0 for r in acts))
+    tracks = gpd.read_parquet(cfg.tracks_path) if cfg.tracks_path.exists() else None
+    out = render_report(
+        joined,
+        tracks_in_period(tracks, s),
+        s,
+        runs,
+        cfg.area.place,
+        cfg.area.crs,
+        cfg.output_dir / f"report_{start:%Y-%m-%d}.html",
+    )
+    return out, summary_text(s, runs, cfg.area.place)
 
 
 def run_render(cfg: Config) -> str:

@@ -55,6 +55,18 @@ uv run uncharted all [--since YYYY-MM-DD] [--skip-sync]
 On the map, hover a street for its name and the year you first ran it, hover a district for
 its coverage, and use the layer control (top right) to show your GPS tracks.
 
+### Weekly report
+
+```sh
+uv run uncharted report                                     # last full Monday–Sunday week
+uv run uncharted report --since 2026-09-01 [--until 2026-09-30]
+```
+
+Writes `data/output/report_<start date>.html`: runs and km, new street km, change in coverage,
+the streets you completed, the ones you made progress on, per-district changes, and a map of
+the area around the period's runs with the new streets highlighted. It also prints a short
+text summary. Run `match` first so the latest runs are included.
+
 ## Configuration
 
 Defaults are in [`config.toml`](config.toml). Put your own settings in `config.local.toml`

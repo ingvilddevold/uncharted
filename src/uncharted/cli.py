@@ -11,6 +11,7 @@ import typer
 from uncharted import pipeline
 from uncharted.config import Config, load_config, load_secrets
 from uncharted.garmin.models import GarminApiError
+from uncharted.report import period
 
 app = typer.Typer(help="Map which streets you have run.", no_args_is_help=True)
 
@@ -122,6 +123,30 @@ def render(config: ConfigOpt = Path("config.toml")) -> None:
     except FileNotFoundError as exc:
         raise _fail(str(exc)) from None
     typer.echo(f"wrote {out}")
+
+
+@app.command()
+def report(
+    config: ConfigOpt = Path("config.toml"),
+    since: Annotated[
+        str | None, typer.Option(help="From YYYY-MM-DD (default: last full Mon–Sun week).")
+    ] = None,
+    until: Annotated[
+        str | None, typer.Option(help="Through YYYY-MM-DD, inclusive (default: today).")
+    ] = None,
+) -> None:
+    """Write a report of what a week's runs added: new streets, completed streets, map."""
+    start, end = period(
+        date.today(),
+        date.fromisoformat(since) if since else None,
+        date.fromisoformat(until) if until else None,
+    )
+    try:
+        out, text = pipeline.run_report(_cfg(config), start, end)
+    except FileNotFoundError as exc:
+        raise _fail(str(exc)) from None
+    typer.echo(text)
+    typer.echo(f"\nwrote {out}")
 
 
 @app.command("all")
